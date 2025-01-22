@@ -12,7 +12,7 @@ const App = () => {
 
   const [data,setData]=useState([
     { id:1,
-      heading:"Master the art of...",
+      heading:"Master the art of gaming by playing the game",
       content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
       time:"Jan 21, 2025 4:24 PM",
       hide:false
@@ -68,6 +68,57 @@ const App = () => {
     const modal=document.getElementById('exampleModal')
     if(modal) modal.click();
   }
+  const [addItem,setAddItem]=useState({
+      heading:"",
+      content:""
+  })
+  const handlenewItem=(e)=>{
+    const {name,value}=e.target;
+    setAddItem({
+      ...addItem,
+      [name]:value
+    })
+  }
+  const addNewItem=()=>{
+    const maxId = data.length > 0 ? Math.max(...data.map((item) => item.id)) : 0;
+    const newItem={
+      id:maxId+1,
+      heading:addItem.heading,
+      content:addItem.content,
+      time:"Jan 21, 2025 4:24 PM",
+      hide:false
+    }
+    setData((prev)=>[...prev,newItem])
+    setAddItem({
+      heading:"",
+      content:""
+    })
+    const modal=document.getElementById('addModal')
+    if(modal) modal.click();
+  }
+  const [editId,setEditId]=useState(null);
+  const [editHeader,setEditHeader]=useState("");
+  const [editContent,setEditContent]=useState("");
+  const handleEditId=(opt)=>{
+        setEditId(opt.id);
+        setEditHeader(opt.heading);
+        setEditContent(opt.content)
+        
+        
+  }
+  const handleUpdate=()=>{
+    // console.log(editId,editHeader);
+    setData((prevData) =>
+      prevData.map((item) =>
+        item.id === editId ? { ...item, heading:editHeader,content:editContent } : item
+      )
+    );
+    setEditId(null);
+    setEditHeader(null);
+    setEditContent(null);
+    const modal=document.getElementById('editModal')
+    if(modal) modal.click();
+  }
   
   return (
     <div className='div d-flex flex-column'>
@@ -93,7 +144,29 @@ const App = () => {
             <div>
           </div>
           <div className='d-flex align-items-center justify-content-end width-full'>
-            <button className='px-3 py-2 rounded border-0 text-white width-full' style={{backgroundColor:"black"}}>New Todo</button>
+            <button className='px-3 py-2 rounded border-0 text-white width-full' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
+          </div>
+          <div class="modal fade " id="addModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add a new Todo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
+                      <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
+                      <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' type='text' placeholder='Title' name='heading' onChange={handlenewItem}/>
+                      <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
+                      <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' type='text' placeholder='Add some content' name='content' onChange={handlenewItem}/>
+                    </div>
+                  </div>
+                  <div class="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
+                  <button type="button" class="btn btn-primary w-100 py-2 px-2 rounded" onClick={()=>addNewItem()}>Add</button>
+                    <button type="button" class="btn btn-secondary w-100 py-2 px-2 rounded" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
           </div>
       </header>
       <section className='w-100 mt-5 d-flex align-items-start justify-content-center'>
@@ -104,8 +177,30 @@ const App = () => {
                           <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
-                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading}</div>
-                              <div className='px-2 py-1 rounded hov'><img src={edit} alt='edit'/></div>
+                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
+                              <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
+                              <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                      <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
+                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
+                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
+                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
+                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                      </div>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={()=>setSelectedItem(opt.id)}><img src={deletebtn} alt='delete'/></div>
                                 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                   <div class="modal-dialog">
