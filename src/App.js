@@ -120,6 +120,8 @@ const App = () => {
     if(modal) modal.click();
   }
   const [states,setStates]=useState('all');
+  const [btn,setBtn]=useState('Newest First');
+  
   
   return (
     <div className='div d-flex flex-column'>
@@ -131,21 +133,22 @@ const App = () => {
             <div style={states==='completed'?{backgroundColor:"lightgray"}:null} className='px-3 py-2 fw-normal hover-div rounded' onClick={()=>setStates('completed')}>Completed</div>
            </div>
             
-            <div class="dropdown border-new width-full">
-              <button style={{outline:"1px solid lightgray"}} class="btn  dropdown-toggle width-full" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                Newest First
+            <div class="dropdown border-new width-full d-flex align-items-center justify-content-start" style={{width:"100%"}}>
+              <button style={{outline:"1px solid lightgray"}} class="btn  dropdown-toggle width-full d-flex align-items-center justify-content-between" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                {btn}
               </button>
-              <ul class="dropdown-menu width-full" aria-labelledby="dropdownMenuButton1">
-                <li>Action</li>
-                <li>Another action</li>
-                <li>Something else here</li>
+              <ul class="dropdown-menu width-fulls" aria-labelledby="dropdownMenuButton1">
+                <li className='p-2 hover-class rounded' onClick={()=>setBtn('Newest first')}>Newest first</li>
+                <li className='p-2 hover-class rounded' onClick={()=>setBtn('Oldest first')}>Oldest first</li>
+                <li className='p-2 hover-class rounded' onClick={()=>setBtn('Newest updated first')}>Newest updated first</li>
+                <li className='p-2 hover-class rounded' onClick={()=>setBtn('Oldest updated first')}>Oldest updated first</li>
               </ul>
                 </div>
             </div>
             <div>
           </div>
-          <div className='d-flex align-items-center justify-content-end width-full'>
-            <button className='px-3 py-2 rounded border-0 text-white width-full' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
+          <div className='d-flex align-items-center justify-content-end width-max'>
+            <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
           </div>
           <div class="modal fade " id="addModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
               <div class="modal-dialog">
