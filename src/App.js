@@ -119,15 +119,16 @@ const App = () => {
     const modal=document.getElementById('editModal')
     if(modal) modal.click();
   }
+  const [states,setStates]=useState('all');
   
   return (
     <div className='div d-flex flex-column'>
       <header className='w-100 media-div-second pt-4 pb-1' style={{borderBottom:"1px solid lightgray"}}>
           <div className='media-div'>
-           <div className='d-flex align-items-center justify-content-between width-fulls'>
-            <div className='px-3 py-2 fw-normal hover-div rounded'>All</div>
-            <div className='px-3 py-2 fw-normal hover-div rounded'>Active</div>
-            <div className='px-3 py-2 fw-normal hover-div rounded' >Completed</div>
+           <div className='d-flex align-items-center justify-content-between width-fulls gap-1'>
+            <div style={states==='all'? {backgroundColor:"lightgray"}:null} className='px-3 py-2 fw-normal hover-div rounded' onClick={()=>setStates('all')}>All</div>
+            <div style={states==='active' ?{backgroundColor:"lightgray"}:null} className='px-3 py-2 fw-normal hover-div rounded' onClick={()=>setStates('active')}>Active</div>
+            <div style={states==='completed'?{backgroundColor:"lightgray"}:null} className='px-3 py-2 fw-normal hover-div rounded' onClick={()=>setStates('completed')}>Completed</div>
            </div>
             
             <div class="dropdown border-new width-full">
@@ -172,7 +173,133 @@ const App = () => {
       <section className='w-100 mt-5 d-flex align-items-start justify-content-center'>
           <div className='width-75 d-flex align-items-center justify-content-center flex-column gap-4'>
                     {
-                     data && Array.isArray(data) && data.map((opt)=>{
+                      states==='completed'? data.map((opt)=>{
+                          return <div className='w-100 media-container' key={opt.id} style={opt.hide ?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
+                          <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          <div className='d-flex align-items-start justify-content-center flex-column width-75'>
+                            <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
+                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
+                              <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
+                              <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                      <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
+                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
+                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
+                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
+                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                      </div>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={()=>setSelectedItem(opt.id)}><img src={deletebtn} alt='delete'/></div>
+                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                      This action cannot be undone. This will permanently delete your todo and remove your data from our servers.
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              <div>                              
+                                <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
+                              </div>
+                            </div>
+                            <div>
+                                <div className='pad-media fonts' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
+                                {opt.content}
+                                </div>
+                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
+                                  <div className='mb-1'><img src={clock} alt='clock'/></div>
+                                  <div style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.time}</div>
+                                </div>
+                            </div>
+                          </div>
+                    </div>
+                      }):
+                      states==='active'?data.map((opt)=>{
+                        return <div className='w-100 media-container' key={opt.id} style={!opt.hide?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
+                          <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          <div className='d-flex align-items-start justify-content-center flex-column width-75'>
+                            <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
+                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
+                              <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
+                              <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                      <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
+                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
+                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
+                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
+                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                      </div>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={()=>setSelectedItem(opt.id)}><img src={deletebtn} alt='delete'/></div>
+                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                      This action cannot be undone. This will permanently delete your todo and remove your data from our servers.
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              <div>                              
+                                <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
+                              </div>
+                            </div>
+                            <div>
+                                <div className='pad-media fonts' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
+                                {opt.content}
+                                </div>
+                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
+                                  <div className='mb-1'><img src={clock} alt='clock'/></div>
+                                  <div style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.time}</div>
+                                </div>
+                            </div>
+                          </div>
+                    </div>
+                      })
+                     :data && Array.isArray(data) && data.map((opt)=>{
                     return <div className='w-100 media-container' key={opt.id} style={{border:"1px solid lightgray",borderRadius:"8px"}}>
                           <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
