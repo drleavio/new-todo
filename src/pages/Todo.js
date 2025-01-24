@@ -1,70 +1,53 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import images from '../assets/images/jack-white-fsLwJuydkTY-unsplash.jpg';
 import edit from '../assets/images/edit-3-svgrepo-com.svg';
 import deletebtn from '../assets/images/delete-svgrepo-com.svg';
 import clock from '../assets/images/clock-0900-svgrepo-com.svg'
 import { Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import Parse from '../service/parse';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const Todo = () => {
+  const navigate=useNavigate()
+  const user=useRef(null);
+ 
 
-  const [data,setData]=useState([
-    { id:1,
-      heading:"Master the art of gaming by playing the game",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 23, 2025 11:30 AM",
-      hide:false
-    },
-    { id:2,
-      heading:"Conquer Mount Everest",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 20, 1970 2:02 PM",
-      hide:false
-    },
-    { id:3,
-      heading:"Train a Dragon",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 21, 2025 4:24 PM",
-      hide:false
-    },
-    { id:4,
-      heading:"Master the art of...",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 21, 2025 4:24 PM",
-      hide:false
-    },
-    { id:5,
-      heading:"Master the art of...",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 21, 2025 4:24 PM",
-      hide:false
-    },
-    { id:6,
-      heading:"Master the art of...",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 21, 2025 4:24 PM",
-      hide:false
-    },
-    { id:7,
-      heading:"Master the art of...",
-      content:"Learn to juggle three flaming torches while riding a unicycle. Start with basic juggling techniques and gradually progress to advanced fire juggling skills.",
-      time:"Jan 21, 2025 4:24 PM",
-      hide:false
+  const [data,setData]=useState([])
+  const handleHide=async(id)=>{
+    // setData((prevData) =>
+    //   prevData.map((item) =>
+    //     item.id === id ? { ...item, hide: !item.hide } : item
+    //   )
+    // );
+    const Task = Parse.Object.extend("todoapp");
+    const query = new Parse.Query(Task);
+    const task = await query.get(id);
+    try {
+      console.log(task);
+      
+      task.set('hide',!task.attributes.hide);
+      await task.save();
+      await fetchData()
+    } catch (error) {
+      console.log('error deleting the data');
+      
     }
-  ])
-  const handleHide=(id)=>{
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.id === id ? { ...item, hide: !item.hide } : item
-      )
-    );
   }
   const [selectedItem,setSelectedItem]=useState(null);
-  const handleDelete=()=>{
-    setData((prevData) => prevData.filter((item) => item.id !== selectedItem));
-    setSelectedItem(null);
+  const handleDelete=async(id)=>{
+    const Task = Parse.Object.extend("todoapp");
+    const query = new Parse.Query(Task);
+    const task = await query.get(id);
+    try {
+      await task.destroy();
+      await fetchData()
+    } catch (error) {
+      console.log('error deleting data');
+      
+    }
     const modal=document.getElementById('exampleModal')
     if(modal) modal.click();
   }
@@ -108,58 +91,142 @@ const Todo = () => {
     }
     return mon + ' '+month[0]+', '+month[2]+' '+hour+':'+times[1]+' '+greet
   }
-  const addNewItem=()=>{
-    const maxId = data.length > 0 ? Math.max(...data.map((item) => item.id)) : 0;
-   
-   
-    const newItem={
-      id:maxId+1,
-      heading:addItem.heading,
-      content:addItem.content,
-      time:giveTime(),
-      hide:false
-    }
-    setData((prev)=>[...prev,newItem])
-    setAddItem({
-      heading:"",
-      content:""
-    })
-    const modal=document.getElementById('addModal')
+  const addNewItem=async()=>{
+    // const maxId = data.length > 0 ? Math.max(...data.map((item) => item.id)) : 0;
+    const newdata = Parse.Object.extend("todoapp");
+    const newuser = new newdata();
+    newuser.set('heading',addItem.heading);
+      newuser.set('content',addItem.content);
+      newuser.set('userid',user.current.id);
+      
+    try {
+      
+      const response=await newuser.save();
+      console.log('data-added',response);
+      await fetchData();
+      setAddItem({
+        heading:"",
+        content:""
+      })
+      const modal=document.getElementById('addModal')
     if(modal) modal.click();
+    } catch (error) {
+      console.log('error saving data',error);
+      const modal=document.getElementById('addModal')
+    if(modal) modal.click();
+      
+    }
+   
+   
+    // const newItem={
+    //   id:maxId+1,
+    //   heading:addItem.heading,
+    //   content:addItem.content,
+    //   time:giveTime(),
+    //   hide:false
+    // }
+    // setData((prev)=>[...prev,newItem])
+    // setAddItem({
+    //   heading:"",
+    //   content:""
+    // })
+    
   }
   const [editId,setEditId]=useState(null);
   const [editHeader,setEditHeader]=useState("");
   const [editContent,setEditContent]=useState("");
   const handleEditId=(opt)=>{
         setEditId(opt.id);
-        setEditHeader(opt.heading);
-        setEditContent(opt.content)
+        setEditHeader(opt.attributes.heading);
+        setEditContent(opt.attributes.content)
         
         
   }
-  const handleUpdate=()=>{
+  const handleUpdate=async(id)=>{
     // console.log(editId,editHeader);
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.id === editId ? { ...item, heading:editHeader,content:editContent,time:giveTime() } : item
-      )
-    );
-    setEditId(null);
-    setEditHeader(null);
-    setEditContent(null);
-    const modal=document.getElementById('editModal')
+    // setData((prevData) =>
+    //   prevData.map((item) =>
+    //     item.id === editId ? { ...item, heading:editHeader,content:editContent,time:giveTime() } : item
+    //   )
+    // );
+    const Task = Parse.Object.extend("todoapp");
+    const query = new Parse.Query(Task);
+    const task = await query.get(id);
+    try {
+      task.set('heading',editHeader);
+      task.set('content',editContent);
+      await task.save();
+      setEditId(null);
+      setEditHeader(null);
+      setEditContent(null);
+      await fetchData()
+      const modal=document.getElementById('editModal')
     if(modal) modal.click();
+    } catch (error) {
+      console.log('error updating ');
+      
+      const modal=document.getElementById('editModal')
+    if(modal) modal.click();
+    }
+   
+    
   }
   const [states,setStates]=useState('all');
   const [btn,setBtn]=useState('Newest First');
-  useEffect(()=>{
-      if(btn==='Newest updated first'){
-        data.sort((a,b)=> new Date(a.time) - new Date(b.time))
-      }else if(btn==='Oldest updated first'){
-        data.sort((a,b)=> new Date(b.time) - new Date(a.time))
-      }
-  },[btn,data])
+  // useEffect(()=>{
+  //   console.log(btn);
+    
+  //     if(btn==='Newest updated first'){
+  //       data.sort((a,b)=> new Date(a.time) - new Date(b.time))
+        
+  //     }else if(btn==='Oldest updated first'){
+  //       data.sort((a,b)=> new Date(b.time) - new Date(a.time))
+  //     }
+  // },[btn,data])
   
+  const logout=async()=>{
+    try {
+      await Parse.User.logOut();
+      user.current=null
+      navigate('/')
+      console.log("User logged out!");
+    } catch (error) {
+      console.error("Error while logging out:", error.message);
+    }
+  }
+  
+  const fetchData=async()=>{
+    const Product = Parse.Object.extend("todoapp");
+    const query = new Parse.Query(Product);
+    if(btn==='Newest First'){
+      query.ascending('createdAt');
+    }else if(btn==='Oldest first'){
+      query.descending('createdAt')
+    }else if(btn==='Newest updated first'){
+      query.ascending('updatedAt')
+    }else if(btn==='Oldest updated first'){
+      query.descending('updatedAt')
+    }
+      try {
+        query.equalTo('userid',user.current.id);
+        const response=await query.find();
+        setData(response)
+      } catch (error) {
+        console.log('error fetching the data',error);
+        
+      }
+  }
+  useEffect(()=>{
+    const loggedIn=Parse.User.current();
+    console.log(loggedIn);
+    
+    if(!loggedIn){
+        navigate('/')
+    }
+    user.current=loggedIn;
+    console.log('user-session',user.current.id);
+    fetchData();
+},[btn])
   
   return (
     <div className='div d-flex flex-column'>
@@ -185,8 +252,9 @@ const Todo = () => {
             </div>
             <div>
           </div>
-          <div className='d-flex align-items-center justify-content-end width-max'>
+          <div className='d-flex align-items-center justify-content-end width-max gap-2'>
             <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
+            {user &&<button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} onClick={()=>logout()}>Logout</button>}
           </div>
          <div className="modal fade " id="addModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div className="modal-dialog">
@@ -198,13 +266,13 @@ const Todo = () => {
       <div className="modal-body w-100">
         <div className="w-100 d-flex align-items-center justify-content-center flex-column gap-2">
           <label className="w-100 d-flex align-items-center justify-content-start fs-4">Title</label>
-          <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Title" name="heading" onchange={handlenewItem}/>
+          <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Title" name="heading" onChange={handlenewItem}/>
           <label className="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
-          <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Add some content" name="content" onchange={handlenewItem} />
+          <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Add some content" name="content" onChange={handlenewItem} />
         </div>
       </div>
       <div className="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
-        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded" onclick={()=>addNewItem()}>Add</button>
+        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded" onClick={()=>addNewItem()}>Add</button>
         <button type="button" className="btn btn-secondary w-100 py-2 px-2 rounded" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -216,20 +284,20 @@ const Todo = () => {
           <div className='width-75 d-flex align-items-center justify-content-center flex-column gap-4'>
                     {
                       states==='completed'? data.map((opt)=>{
-                          return <div className='w-100 media-container' key={opt.id} style={opt.hide ?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
-                          <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          return <div className='w-100 media-container' key={opt.id} style={opt.attributes.hide ?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
+                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
-                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
+                              <div className='header-fonts w-50 ' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.attributes.heading}</div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
-                              <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              <div className="modal fade" id="editModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div className="modal-dialog">
+                                    <div className="modal-content">
+                                      <div className="modal-header">
+                                        <h5 className="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                       </div>
-                                      <div class="modal-body">
+                                      <div className="modal-body">
                                       <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
@@ -238,8 +306,8 @@ const Todo = () => {
                                       </div>
                                       </div>
                                       <div className="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
+                                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" className="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
                                       </div>
                                     </div>
                                   </div>
@@ -257,7 +325,7 @@ const Todo = () => {
                                     </div>
                                     <div className="modal-footer">
                                       <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                      <button type="button" className="btn btn-primary" onclick={()=>handleDelete(opt.id)}>Delete</button>
+                                      <button type="button" className="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
                                     </div>
                                   </div>
                                 </div>
@@ -268,25 +336,25 @@ const Todo = () => {
                               </div>
                             </div>
                             <div>
-                                <div className='pad-media fonts' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
-                                {opt.content}
+                                <div className='pad-media fonts' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
+                                {opt.attributes.content}
                                 </div>
                                 <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
                                   <div className='mb-1'><img src={clock} alt='clock'/></div>
-                                  <div style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.time}</div>
+                                  <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()}</div>
                                 </div>
                             </div>
                           </div>
                     </div>
                       }):
                       states==='active'?data.map((opt)=>{
-                        return <div className='w-100 media-container' key={opt.id} style={!opt.hide?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
-                          <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                        return <div className='w-100 media-container' key={opt.id} style={!opt.attributes.hide?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
+                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
-                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
+                              <div className='header-fonts w-50 ' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.attributes.heading}</div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
-                              <div className="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                              <div className="modal fade" id="editModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                 <div className="modal-dialog">
                                   <div className="modal-content">
                                     <div className="modal-header">
@@ -296,14 +364,14 @@ const Todo = () => {
                                     <div className="modal-body">
                                       <div classname="w-100 d-flex align-items-center justify-content-center flex-column gap-2">
                                         <label classname="w-100 d-flex align-items-center justify-content-start fs-4">Title</label>
-                                        <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editHeader}" type="text" placeholder="Title" name="heading" onchange={(e)=>setEditHeader(e.target.value)}/>
+                                        <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editHeader}" type="text" placeholder="Title" name="heading" onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label classname="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
                                         <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editContent}" type="text" placeholder="Add some content" name="content" onchange={(e)=> setEditContent(e.target.value)}/>
                                       </div>
                                     </div>
                                     <div className="modal-footer">
                                       <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                      <button type="button" className="btn btn-primary" onclick={()=>handleUpdate()}>Update</button>
+                                      <button type="button" className="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
                                     </div>
                                   </div>
                                 </div>
@@ -322,7 +390,7 @@ const Todo = () => {
                                     </div>
                                     <div className="modal-footer">
                                       <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                      <button type="button" className="btn btn-primary" onclick="{()=">handleDelete(opt.id){'}'}&gt;Delete</button>
+                                      <button type="button" className="btn btn-primary" onClick="{()=">handleDelete(opt.id){'}'}&gt;Delete</button>
                                     </div>
                                   </div>
                                 </div>
@@ -333,12 +401,12 @@ const Todo = () => {
                               </div>
                             </div>
                             <div>
-                                <div className='pad-media fonts' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
-                                {opt.content}
+                                <div className='pad-media fonts' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
+                                {opt.attributes.content}
                                 </div>
                                 <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
                                   <div className='mb-1'><img src={clock} alt='clock'/></div>
-                                  <div style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.time}</div>
+                                  <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()}</div>
                                 </div>
                             </div>
                           </div>
@@ -346,19 +414,19 @@ const Todo = () => {
                       })
                      :data && Array.isArray(data) && data.map((opt)=>{
                     return <div className='w-100 media-container' key={opt.id} style={{border:"1px solid lightgray",borderRadius:"8px"}}>
-                          <div className='media-img-div' style={opt.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
-                              <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
+                              <div className='header-fonts w-50 ' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.attributes.heading}</div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
-                              <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              <div className="modal fade" id="editModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div className="modal-dialog">
+                                    <div className="modal-content">
+                                      <div className="modal-header">
+                                        <h5 className="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                       </div>
-                                      <div class="modal-body">
+                                      <div className="modal-body">
                                       <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
@@ -366,27 +434,27 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
                                       </div>
                                       </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
+                                      <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" className="btn btn-primary" onClick={()=>handleUpdate(opt.id)}>Update</button>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={()=>setSelectedItem(opt.id)}><img src={deletebtn} alt='delete'/></div>
-                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div className="modal-dialog">
+                                    <div className="modal-content">
+                                      <div className="modal-header">
+                                        <h5 className="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                       </div>
-                                      <div class="modal-body">
+                                      <div className="modal-body">
                                       This action cannot be undone. This will permanently delete your todo and remove your data from our servers.
                                       </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
+                                      <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" className="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
                                       </div>
                                     </div>
                                   </div>
@@ -396,12 +464,13 @@ const Todo = () => {
                               </div>
                             </div>
                             <div>
-                                <div className='pad-media fonts' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
-                                {opt.content}
+                                <div className='pad-media fonts' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
+                                {opt.attributes.content}
                                 </div>
                                 <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
                                   <div className='mb-1'><img src={clock} alt='clock'/></div>
-                                  <div style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.time}</div>
+                                  <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()
+                                  }</div>
                                 </div>
                             </div>
                           </div>
