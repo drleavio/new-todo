@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 const Todo = () => {
   const navigate=useNavigate()
   const user=useRef(null);
+  const name=useRef(null);
  
 
   const [data,setData]=useState([])
@@ -62,8 +63,8 @@ const Todo = () => {
       [name]:value
     })
   }
-  function giveTime(){
-    const date_format=new Date().toLocaleString().split(',');
+  function giveTime(date_format){
+    // const date_format=new Date().toLocaleString().split(',');
     const date=date_format[0];
     const time=date_format[1];
     const times=time.split(':');
@@ -224,7 +225,8 @@ const Todo = () => {
         navigate('/')
     }
     user.current=loggedIn;
-    console.log('user-session',user.current.id);
+    name.current=loggedIn.attributes.username
+    console.log('user-session',user.current.id,name.current);
     fetchData();
 },[btn])
   
@@ -252,6 +254,7 @@ const Todo = () => {
             </div>
             <div>
           </div>
+          
           <div className='d-flex align-items-center justify-content-end width-max gap-2'>
             <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
             {user &&<button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} onClick={()=>logout()}>Logout</button>}
@@ -280,6 +283,9 @@ const Todo = () => {
 </div>
 
       </header>
+      <div className='d-flex gap-2 fs-4 fw-normal my-2'>
+            Welcome <div className='fw-bolder'>{name.current}</div>
+          </div>
       <section className='w-100 mt-5 d-flex align-items-start justify-content-center'>
           <div className='width-75 d-flex align-items-center justify-content-center flex-column gap-4'>
                     {
@@ -332,7 +338,9 @@ const Todo = () => {
                               </div>
 
                               <div>                              
-                                <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
+                              {
+                                  opt.attributes.hide? <IOSSwitch sx={{ m: 1 }} defaultChecked onClick={()=>handleHide(opt.id)}/> : <IOSSwitch sx={{ m: 1 }} onClick={()=>handleHide(opt.id)}/> 
+                                }
                               </div>
                             </div>
                             <div>
@@ -397,7 +405,9 @@ const Todo = () => {
                               </div>
 
                               <div>                              
-                                <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
+                              {
+                                  opt.attributes.hide? <IOSSwitch sx={{ m: 1 }} defaultChecked onClick={()=>handleHide(opt.id)}/> : <IOSSwitch sx={{ m: 1 }} onClick={()=>handleHide(opt.id)}/> 
+                                }
                               </div>
                             </div>
                             <div>
@@ -459,8 +469,11 @@ const Todo = () => {
                                     </div>
                                   </div>
                                 </div>
-                              <div>                              
-                                <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
+                              <div>     
+                                {
+                                  opt.attributes.hide? <IOSSwitch sx={{ m: 1 }} defaultChecked onClick={()=>handleHide(opt.id)}/> : <IOSSwitch sx={{ m: 1 }} onClick={()=>handleHide(opt.id)}/> 
+                                }                         
+                               
                               </div>
                             </div>
                             <div>

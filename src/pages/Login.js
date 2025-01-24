@@ -34,8 +34,8 @@ const Login = () => {
         }
     }
   return (
-    <div style={{height:"100vh", width:"100vw", overflow:"hidden"}} className='d-flex align-items-center justify-content-center'>
-        <div className='d-flex align-items-center justify-content-center flex-column gap-3 px-4 py-3' style={{border:"1px solid lightgray",borderRadius:"12px"}}>
+    <div style={{height:"100vh", width:"100vw", overflow:"hidden"}} className='d-flex align-items-center justify-content-center px-2'>
+        <div className='d-flex align-items-center justify-content-center flex-column gap-3 px-4 py-3 width-max' style={{border:"1px solid lightgray",borderRadius:"12px"}}>
                 <h1>Login</h1>
                 <div className='w-100 d-flex align-items-center justify-content-start flex-column gap-2'>
                     <label className='w-100 fs-5 fw-normal'>Username</label>
