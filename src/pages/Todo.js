@@ -171,11 +171,11 @@ const Todo = () => {
             <div style={states==='completed'?{backgroundColor:"lightgray"}:null} className='px-3 py-2 fw-normal hover-div rounded' onClick={()=>setStates('completed')}>Completed</div>
            </div>
             
-            <div class="dropdown border-new width-full d-flex align-items-center justify-content-start" style={{width:"100%"}}>
-              <button style={{outline:"1px solid lightgray"}} class="btn  dropdown-toggle width-full d-flex align-items-center justify-content-between" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+            <div className="dropdown border-new width-full d-flex align-items-center justify-content-start" style={{width:"100%"}}>
+              <button style={{outline:"1px solid lightgray"}} className="btn  dropdown-toggle width-full d-flex align-items-center justify-content-between" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                 {btn}
               </button>
-              <ul class="dropdown-menu width-fulls" aria-labelledby="dropdownMenuButton1">
+              <ul className="dropdown-menu width-fulls" aria-labelledby="dropdownMenuButton1">
                 <li className='p-2 hover-class rounded' onClick={()=>setBtn('Newest first')}>Newest first</li>
                 <li className='p-2 hover-class rounded' onClick={()=>setBtn('Oldest first')}>Oldest first</li>
                 <li className='p-2 hover-class rounded' onClick={()=>setBtn('Newest updated first')}>Newest updated first</li>
@@ -188,28 +188,29 @@ const Todo = () => {
           <div className='d-flex align-items-center justify-content-end width-max'>
             <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
           </div>
-          <div class="modal fade " id="addModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Add a new Todo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
-                      <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
-                      <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' type='text' placeholder='Title' name='heading' onChange={handlenewItem}/>
-                      <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
-                      <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' type='text' placeholder='Add some content' name='content' onChange={handlenewItem}/>
-                    </div>
-                  </div>
-                  <div class="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
-                  <button type="button" class="btn btn-primary w-100 py-2 px-2 rounded" onClick={()=>addNewItem()}>Add</button>
-                    <button type="button" class="btn btn-secondary w-100 py-2 px-2 rounded" data-bs-dismiss="modal">Close</button>
-                  </div>
-                </div>
-              </div>
-          </div>
+         <div className="modal fade " id="addModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div className="modal-dialog">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h5 className="modal-title" id="exampleModalLabel">Add a new Todo</h5>
+        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+      </div>
+      <div className="modal-body w-100">
+        <div className="w-100 d-flex align-items-center justify-content-center flex-column gap-2">
+          <label className="w-100 d-flex align-items-center justify-content-start fs-4">Title</label>
+          <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Title" name="heading" onchange={handlenewItem}/>
+          <label className="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
+          <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Add some content" name="content" onchange={handlenewItem} />
+        </div>
+      </div>
+      <div className="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
+        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded" onclick={()=>addNewItem()}>Add</button>
+        <button type="button" className="btn btn-secondary w-100 py-2 px-2 rounded" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
       </header>
       <section className='w-100 mt-5 d-flex align-items-start justify-content-center'>
           <div className='width-75 d-flex align-items-center justify-content-center flex-column gap-4'>
@@ -236,7 +237,7 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
                                       </div>
                                       </div>
-                                      <div class="modal-footer">
+                                      <div className="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                         <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
                                       </div>
@@ -244,23 +245,24 @@ const Todo = () => {
                                   </div>
                                 </div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={()=>setSelectedItem(opt.id)}><img src={deletebtn} alt='delete'/></div>
-                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body">
+                                <div className="modal fade" id="exampleModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                      <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                    </div>
+                                    <div className="modal-body">
                                       This action cannot be undone. This will permanently delete your todo and remove your data from our servers.
-                                      </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
-                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                      <button type="button" className="btn btn-primary" onclick={()=>handleDelete(opt.id)}>Delete</button>
                                     </div>
                                   </div>
                                 </div>
+                              </div>
+
                               <div>                              
                                 <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
                               </div>
@@ -284,46 +286,48 @@ const Todo = () => {
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
                               <div className='header-fonts w-50 ' style={opt.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.heading.length<22?opt.heading:opt.heading.substring(0,22)+'...'}</div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#editModal" onClick={()=>handleEditId(opt)}><img src={edit} alt='edit'/></div>
-                              <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body">
-                                      <div className='w-100 d-flex align-items-center justify-content-center flex-column gap-2'>
-                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Title</label>
-                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
-                                        <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
-                                        <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
-                                      </div>
-                                      </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onClick={()=>handleUpdate()}>Update</button>
+                              <div className="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                      <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div classname="w-100 d-flex align-items-center justify-content-center flex-column gap-2">
+                                        <label classname="w-100 d-flex align-items-center justify-content-start fs-4">Title</label>
+                                        <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editHeader}" type="text" placeholder="Title" name="heading" onchange={(e)=>setEditHeader(e.target.value)}/>
+                                        <label classname="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
+                                        <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editContent}" type="text" placeholder="Add some content" name="content" onchange={(e)=> setEditContent(e.target.value)}/>
                                       </div>
                                     </div>
+                                    <div className="modal-footer">
+                                      <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                      <button type="button" className="btn btn-primary" onclick={()=>handleUpdate()}>Update</button>
+                                    </div>
                                   </div>
+                                </div>
+
                                 </div>
                               <div className='px-2 py-1 rounded hov' data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={()=>setSelectedItem(opt.id)}><img src={deletebtn} alt='delete'/></div>
-                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body">
+                               <div className="modal fade" id="exampleModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title" id="exampleModalLabel">Are you absolutely sure?</h5>
+                                      <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                    </div>
+                                    <div className="modal-body">
                                       This action cannot be undone. This will permanently delete your todo and remove your data from our servers.
-                                      </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onClick={()=>handleDelete(opt.id)}>Delete</button>
-                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                      <button type="button" className="btn btn-primary" onclick="{()=">handleDelete(opt.id){'}'}&gt;Delete</button>
                                     </div>
                                   </div>
                                 </div>
+                              </div>
+
                               <div>                              
                                 <IOSSwitch sx={{ m: 1 }}  onClick={()=>handleHide(opt.id)}/> 
                               </div>
