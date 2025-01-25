@@ -7,6 +7,7 @@ import { Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Parse from '../service/parse';
 import { useNavigate } from 'react-router-dom';
+import PhotoCrop from '../components/PhotoCrop';
 
 
 
@@ -14,7 +15,7 @@ const Todo = () => {
   const navigate=useNavigate()
   const user=useRef(null);
   const name=useRef(null);
- 
+  // const [show,setShow]=useState(false);
 
   const [data,setData]=useState([])
   const handleHide=async(id)=>{
@@ -54,7 +55,8 @@ const Todo = () => {
   }
   const [addItem,setAddItem]=useState({
       heading:"",
-      content:""
+      content:"",
+      pic:""
   })
   const handlenewItem=(e)=>{
     const {name,value}=e.target;
@@ -99,7 +101,7 @@ const Todo = () => {
     newuser.set('heading',addItem.heading);
       newuser.set('content',addItem.content);
       newuser.set('userid',user.current.id);
-      
+      newuser.set('image',croppedImage)
     try {
       
       const response=await newuser.save();
@@ -107,8 +109,11 @@ const Todo = () => {
       await fetchData();
       setAddItem({
         heading:"",
-        content:""
+        content:"",
+        
       })
+      setCroppedImage(null)
+      // setShow(false);
       const modal=document.getElementById('addModal')
     if(modal) modal.click();
     } catch (error) {
@@ -133,6 +138,7 @@ const Todo = () => {
     // })
     
   }
+  // const [pic,setPic]=useState(null);
   const [editId,setEditId]=useState(null);
   const [editHeader,setEditHeader]=useState("");
   const [editContent,setEditContent]=useState("");
@@ -200,13 +206,13 @@ const Todo = () => {
     const Product = Parse.Object.extend("todoapp");
     const query = new Parse.Query(Product);
     if(btn==='Newest First'){
-      query.ascending('createdAt');
+      query.descending('createdAt');
     }else if(btn==='Oldest first'){
-      query.descending('createdAt')
+      query.ascending('createdAt')
     }else if(btn==='Newest updated first'){
-      query.ascending('updatedAt')
-    }else if(btn==='Oldest updated first'){
       query.descending('updatedAt')
+    }else if(btn==='Oldest updated first'){
+      query.ascending('updatedAt')
     }
       try {
         query.equalTo('userid',user.current.id);
@@ -229,6 +235,38 @@ const Todo = () => {
     console.log('user-session',user.current.id,name.current);
     fetchData();
 },[btn])
+
+  const handleImageChange=(e)=>{
+      console.log(e);
+      const file=e.target.files[0];
+      if(file){
+        if(file.size>2*1024*1024){
+          alert("file size is greater then 2MB");
+          return;
+        }
+        if(!["image/jpeg", "image/png"].includes(file.type)){
+          alert("Invalid file type. Only JPEG and PNG are allowed.");
+          return;
+        }
+        const reader=new FileReader();
+        reader.onload=()=>{
+          setAddItem({
+            ...addItem,
+            [e.target.name]:reader.result
+          })
+        }
+        reader.readAsDataURL(file)
+      }
+      
+  }
+  const [croppedImage, setCroppedImage] = useState(null);
+  const handleCropComplete = (croppedImageUrl) => {
+    setCroppedImage(croppedImageUrl);
+    setAddItem({
+      image:"",
+    })
+    
+  };
   
   return (
     <div className='div d-flex flex-column'>
@@ -266,12 +304,34 @@ const Todo = () => {
         <h5 className="modal-title" id="exampleModalLabel">Add a new Todo</h5>
         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
       </div>
-      <div className="modal-body w-100">
+      <div className="modal-body w-100" style={{position:"relative"}}>
         <div className="w-100 d-flex align-items-center justify-content-center flex-column gap-2">
           <label className="w-100 d-flex align-items-center justify-content-start fs-4">Title</label>
           <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Title" name="heading" onChange={handlenewItem}/>
           <label className="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
           <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Add some content" name="content" onChange={handlenewItem} />
+          
+           <div style={{height:"300px",width:"100%"}}></div>
+          
+           <div style={{position:"absolute",top:"200px", height:"300px", width:"500px"}}>
+           {
+              addItem.pic && <PhotoCrop imageSrc={addItem.pic} setImageSrc={setAddItem} onCropComplete={handleCropComplete}/>
+            }
+             {croppedImage && (
+              <img
+                src={croppedImage}
+                alt="preview"
+                style={{ height: "300px", width: "100%" }}
+              />
+            )}
+           </div>
+            
+            <div className='w-100 d-flex align-items-center justify-content-center fs-5 bg-primary rounded px-2 py-1 text-white my-1 flex-column'>
+           
+            <label htmlFor='img-add'>Add an Image</label>
+          <input id='img-add' style={{display:"none"}} name='pic' accept='image/*' type='file' onChange={handleImageChange}/>
+          </div>
+          
         </div>
       </div>
       <div className="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
@@ -291,7 +351,7 @@ const Todo = () => {
                     {
                       states==='completed'? data.map((opt)=>{
                           return <div className='w-100 media-container' key={opt.id} style={opt.attributes.hide ?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
-                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={opt.attributes.image || images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
                               <div className='header-fonts w-50 ' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.attributes.heading}</div>
@@ -347,17 +407,25 @@ const Todo = () => {
                                 <div className='pad-media fonts' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
                                 {opt.attributes.content}
                                 </div>
-                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
+                               <div className='d-flex align-items-center justify-content-start pad-media-second gap-3'>
+                               <div className='d-flex align-items-center justify-content-start gap-1'>
                                   <div className='mb-1'><img src={clock} alt='clock'/></div>
                                   <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()}</div>
                                 </div>
+                                { (opt.attributes.updatedAt && opt.attributes.updatedAt.toLocaleString()!==opt.attributes.createdAt.toLocaleString()) &&
+                                 <div className='d-flex align-items-center justify-content-start gap-1'>
+                                 <div className='mb-1'><img src={clock} alt='clock'/></div>
+                                 <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>updated at {opt.attributes.updatedAt.toLocaleString()}</div>
+                               </div>
+                              }
+                               </div>
                             </div>
                           </div>
                     </div>
                       }):
                       states==='active'?data.map((opt)=>{
                         return <div className='w-100 media-container' key={opt.id} style={!opt.attributes.hide?{border:"1px solid lightgray",borderRadius:"8px"}:{display:"none"}}>
-                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={opt.attributes.image || images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
                               <div className='header-fonts w-50 ' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.attributes.heading}</div>
@@ -414,17 +482,25 @@ const Todo = () => {
                                 <div className='pad-media fonts' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
                                 {opt.attributes.content}
                                 </div>
-                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
+                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-3'>
+                               <div className='d-flex align-items-center justify-content-start  gap-1'>
                                   <div className='mb-1'><img src={clock} alt='clock'/></div>
                                   <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()}</div>
                                 </div>
+                                { (opt.attributes.updatedAt && opt.attributes.updatedAt.toLocaleString()!==opt.attributes.createdAt.toLocaleString()) &&
+                                 <div className='d-flex align-items-center justify-content-start gap-1'>
+                                 <div className='mb-1'><img src={clock} alt='clock'/></div>
+                                 <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>updated at {opt.attributes.updatedAt.toLocaleString()}</div>
+                               </div>
+                              }
+                               </div>
                             </div>
                           </div>
                     </div>
                       })
                      :data && Array.isArray(data) && data.map((opt)=>{
                     return <div className='w-100 media-container' key={opt.id} style={{border:"1px solid lightgray",borderRadius:"8px"}}>
-                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={images} alt='images'/></div>
+                          <div className='media-img-div' style={opt.attributes.hide?{filter:"blur(2px)"}:null}><img className='media-img img-border' src={opt.attributes.image || images} alt='images'/></div>
                           <div className='d-flex align-items-start justify-content-center flex-column width-75'>
                             <div className='d-flex align-items-center justify-content-between gap-3 w-100 pad-media-second' style={{borderBottom:"1px solid lightgray"}}>
                               <div className='header-fonts w-50 ' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>{opt.attributes.heading}</div>
@@ -480,11 +556,18 @@ const Todo = () => {
                                 <div className='pad-media fonts' style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null}>
                                 {opt.attributes.content}
                                 </div>
-                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-1'>
+                                <div className='d-flex align-items-center justify-content-start pad-media-second gap-3'>
+                               <div className='d-flex align-items-center justify-content-start gap-1'>
                                   <div className='mb-1'><img src={clock} alt='clock'/></div>
-                                  <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()
-                                  }</div>
+                                  <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>{opt.attributes.createdAt.toLocaleString()}</div>
                                 </div>
+                                { (opt.attributes.updatedAt && opt.attributes.updatedAt.toLocaleString()!==opt.attributes.createdAt.toLocaleString()) &&
+                                 <div className='d-flex align-items-center justify-content-start gap-1'>
+                                 <div className='mb-1'><img src={clock} alt='clock'/></div>
+                                 <div style={opt.attributes.hide?{textDecorationLine:"line-through",backgroundColor:"rgb(245,245,245,0.5)",filter:"blur(1px)"}:null} className='sm-fonts'>updated at {opt.attributes.updatedAt.toLocaleString()}</div>
+                               </div>
+                              }
+                               </div>
                             </div>
                           </div>
                     </div>
