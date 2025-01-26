@@ -180,16 +180,7 @@ const Todo = () => {
   }
   const [states,setStates]=useState('all');
   const [btn,setBtn]=useState('Newest First');
-  // useEffect(()=>{
-  //   console.log(btn);
-    
-  //     if(btn==='Newest updated first'){
-  //       data.sort((a,b)=> new Date(a.time) - new Date(b.time))
-        
-  //     }else if(btn==='Oldest updated first'){
-  //       data.sort((a,b)=> new Date(b.time) - new Date(a.time))
-  //     }
-  // },[btn,data])
+  
   
   const logout=async()=>{
     try {
