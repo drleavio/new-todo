@@ -8,6 +8,8 @@ import { styled } from '@mui/material/styles';
 import Parse from '../service/parse';
 import { useNavigate } from 'react-router-dom';
 import PhotoCrop from '../components/PhotoCrop';
+import { MoonLoader } from "react-spinners";
+import { toast } from 'react-toastify';
 
 
 
@@ -15,6 +17,7 @@ const Todo = () => {
   const navigate=useNavigate()
   const user=useRef(null);
   const name=useRef(null);
+  const [loading,setLoading]=useState(false);
   // const [show,setShow]=useState(false);
 
   const [data,setData]=useState([])
@@ -103,13 +106,14 @@ const Todo = () => {
       newuser.set('userid',user.current.id);
       newuser.set('image',croppedImage)
     try {
-      
+      setLoading(true)
       const response=await newuser.save();
       console.log('data-added',response);
+      toast.success('item added successfully')
       await fetchData();
       setAddItem({
-        heading:"",
-        content:"",
+        heading:null,
+        content:null,
         
       })
       setCroppedImage(null)
@@ -118,9 +122,18 @@ const Todo = () => {
     if(modal) modal.click();
     } catch (error) {
       console.log('error saving data',error);
+      setAddItem({
+        heading:null,
+        content:null,
+        
+      })
+      setCroppedImage(null)
+      toast.error(`${error}`)
       const modal=document.getElementById('addModal')
     if(modal) modal.click();
       
+    }finally{
+      setLoading(false)
     }
    
    
@@ -142,11 +155,12 @@ const Todo = () => {
   const [editId,setEditId]=useState(null);
   const [editHeader,setEditHeader]=useState("");
   const [editContent,setEditContent]=useState("");
+  const [editImage,setEditImage]=useState(null);
   const handleEditId=(opt)=>{
         setEditId(opt.id);
         setEditHeader(opt.attributes.heading);
         setEditContent(opt.attributes.content)
-        
+        setEditImage(opt.attributes.image)
         
   }
   const handleUpdate=async(id)=>{
@@ -160,20 +174,27 @@ const Todo = () => {
     const query = new Parse.Query(Task);
     const task = await query.get(id);
     try {
+      setLoading(true)
       task.set('heading',editHeader);
       task.set('content',editContent);
+      task.set('image',editCroppedImage)
       await task.save();
       setEditId(null);
       setEditHeader(null);
       setEditContent(null);
-      await fetchData()
-      const modal=document.getElementById('editModal')
-    if(modal) modal.click();
-    } catch (error) {
-      console.log('error updating ');
+      setEditCroppedImage(null)
       
+      await fetchData()
+      toast.success('item updated successfully')
+      const modal=document.getElementById('editModal')
+      if(modal) modal.click();
+    } catch (error) {
+      // console.log('error updating ');
+      toast.error('Error updating item')
       const modal=document.getElementById('editModal')
     if(modal) modal.click();
+    }finally{
+      setLoading(false)
     }
    
     
@@ -184,12 +205,17 @@ const Todo = () => {
   
   const logout=async()=>{
     try {
+      setLoading(true)
       await Parse.User.logOut();
       user.current=null
+      toast.success('loggedout successfully')
       navigate('/')
       console.log("User logged out!");
     } catch (error) {
+      toast.error('error doing logout')
       console.error("Error while logging out:", error.message);
+    }finally{
+      setLoading(false);
     }
   }
   
@@ -250,12 +276,38 @@ const Todo = () => {
       }
       
   }
+  const handleEditImageChange=(e)=>{
+    console.log(e);
+    const file=e.target.files[0];
+    if(file){
+      if(file.size>2*1024*1024){
+        alert("file size is greater then 2MB");
+        return;
+      }
+      if(!["image/jpeg", "image/png"].includes(file.type)){
+        alert("Invalid file type. Only JPEG and PNG are allowed.");
+        return;
+      }
+      const reader=new FileReader();
+      reader.onload=()=>{
+        setEditImage(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+    
+}
   const [croppedImage, setCroppedImage] = useState(null);
   const handleCropComplete = (croppedImageUrl) => {
     setCroppedImage(croppedImageUrl);
     setAddItem({
       image:"",
     })
+    
+  };
+  const [editCroppedImage, setEditCroppedImage] = useState(null);
+  const handleEditCropComplete = (croppedImageUrl) => {
+    setEditCroppedImage(croppedImageUrl);
+    // setEditImage(null);
     
   };
   
@@ -286,7 +338,7 @@ const Todo = () => {
           
           <div className='d-flex align-items-center justify-content-end width-max gap-2'>
             <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
-            {user &&<button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} onClick={()=>logout()}>Logout</button>}
+            {user &&<button className='px-3 py-2 rounded border-0 text-white width-max d-flex align-items-center justify-content-center gap-2' style={{backgroundColor:"black"}} onClick={()=>logout()}>{loading && <MoonLoader size={15} color="white"/>}Logout</button>}
           </div>
          <div className="modal fade " id="addModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div className="modal-dialog">
@@ -304,7 +356,7 @@ const Todo = () => {
           
            <div style={{height:"300px",width:"100%"}}></div>
           
-           <div style={{position:"absolute",top:"200px", height:"300px", width:"500px"}}>
+           <div style={{position:"absolute",top:"210px", height:"250px", width:"480px"}} className='rounded'>
            {
               addItem.pic && <PhotoCrop imageSrc={addItem.pic} setImageSrc={setAddItem} onCropComplete={handleCropComplete}/>
             }
@@ -326,7 +378,7 @@ const Todo = () => {
         </div>
       </div>
       <div className="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
-        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded" onClick={()=>addNewItem()}>Add</button>
+        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded d-flex align-items-center justify-content-center gap-2" onClick={()=>addNewItem()}>{loading && <MoonLoader size={15} color="white"/>}Add</button>
         <button type="button" className="btn btn-secondary w-100 py-2 px-2 rounded" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -360,6 +412,7 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                        <img src={editImage} alt='edit img'/>
                                       </div>
                                       </div>
                                       <div className="modal-footer">
@@ -434,6 +487,7 @@ const Todo = () => {
                                         <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editHeader}" type="text" placeholder="Title" name="heading" onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label classname="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
                                         <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editContent}" type="text" placeholder="Add some content" name="content" onchange={(e)=> setEditContent(e.target.value)}/>
+                                        <img src={editImage} alt='edit img'/>
                                       </div>
                                     </div>
                                     <div className="modal-footer">
@@ -509,6 +563,27 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                        {/* <img className='media-img' src={editImage || images} alt='edit img'/> */}
+                                        <div style={{height:"300px",width:"100%"}}></div>
+          
+                                          <div style={{position:"absolute",top:"210px", height:"250px", width:"480px"}} className='rounded'>
+                                          {
+                                            (editImage) && <PhotoCrop imageSrc={editImage} setImageSrc={setEditImage} onCropComplete={handleEditCropComplete}/>
+                                          }
+                                            {editCroppedImage && (
+                                            <img
+                                              src={editCroppedImage}
+                                              alt="preview"
+                                              style={{ height: "300px", width: "100%" }}
+                                            />
+                                          )}
+                                          </div>
+                                          
+                                          <div className='w-100 d-flex align-items-center justify-content-center fs-5 bg-primary rounded px-2 py-1 text-white my-1 flex-column'>
+                                          
+                                          <label htmlFor='img-add-second'>Add an Image</label>
+                                        <input id='img-add-second' style={{display:"none"}} name='pic' accept='image/*' type='file' onChange={handleEditImageChange}/>
+                                        </div>
                                       </div>
                                       </div>
                                       <div className="modal-footer">
@@ -569,6 +644,7 @@ const Todo = () => {
     </div>
   )
 }
+
 
 const IOSSwitch = styled((props) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
