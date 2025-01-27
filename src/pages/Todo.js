@@ -155,11 +155,12 @@ const Todo = () => {
   const [editId,setEditId]=useState(null);
   const [editHeader,setEditHeader]=useState("");
   const [editContent,setEditContent]=useState("");
+  const [editImage,setEditImage]=useState(null);
   const handleEditId=(opt)=>{
         setEditId(opt.id);
         setEditHeader(opt.attributes.heading);
         setEditContent(opt.attributes.content)
-        
+        setEditImage(opt.attributes.image)
         
   }
   const handleUpdate=async(id)=>{
@@ -176,14 +177,17 @@ const Todo = () => {
       setLoading(true)
       task.set('heading',editHeader);
       task.set('content',editContent);
+      task.set('image',editCroppedImage)
       await task.save();
       setEditId(null);
       setEditHeader(null);
       setEditContent(null);
-      toast.success('item updated successfully')
+      setEditCroppedImage(null)
+      
       await fetchData()
+      toast.success('item updated successfully')
       const modal=document.getElementById('editModal')
-    if(modal) modal.click();
+      if(modal) modal.click();
     } catch (error) {
       // console.log('error updating ');
       toast.error('Error updating item')
@@ -272,12 +276,38 @@ const Todo = () => {
       }
       
   }
+  const handleEditImageChange=(e)=>{
+    console.log(e);
+    const file=e.target.files[0];
+    if(file){
+      if(file.size>2*1024*1024){
+        alert("file size is greater then 2MB");
+        return;
+      }
+      if(!["image/jpeg", "image/png"].includes(file.type)){
+        alert("Invalid file type. Only JPEG and PNG are allowed.");
+        return;
+      }
+      const reader=new FileReader();
+      reader.onload=()=>{
+        setEditImage(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+    
+}
   const [croppedImage, setCroppedImage] = useState(null);
   const handleCropComplete = (croppedImageUrl) => {
     setCroppedImage(croppedImageUrl);
     setAddItem({
       image:"",
     })
+    
+  };
+  const [editCroppedImage, setEditCroppedImage] = useState(null);
+  const handleEditCropComplete = (croppedImageUrl) => {
+    setEditCroppedImage(croppedImageUrl);
+    // setEditImage(null);
     
   };
   
@@ -382,6 +412,7 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                        <img src={editImage} alt='edit img'/>
                                       </div>
                                       </div>
                                       <div className="modal-footer">
@@ -456,6 +487,7 @@ const Todo = () => {
                                         <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editHeader}" type="text" placeholder="Title" name="heading" onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label classname="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
                                         <input classname="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" defaultValue="{editContent}" type="text" placeholder="Add some content" name="content" onchange={(e)=> setEditContent(e.target.value)}/>
+                                        <img src={editImage} alt='edit img'/>
                                       </div>
                                     </div>
                                     <div className="modal-footer">
@@ -531,6 +563,27 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                        {/* <img className='media-img' src={editImage || images} alt='edit img'/> */}
+                                        <div style={{height:"300px",width:"100%"}}></div>
+          
+                                          <div style={{position:"absolute",top:"210px", height:"250px", width:"480px"}} className='rounded'>
+                                          {
+                                            (editImage) && <PhotoCrop imageSrc={editImage} setImageSrc={setEditImage} onCropComplete={handleEditCropComplete}/>
+                                          }
+                                            {editCroppedImage && (
+                                            <img
+                                              src={editCroppedImage}
+                                              alt="preview"
+                                              style={{ height: "300px", width: "100%" }}
+                                            />
+                                          )}
+                                          </div>
+                                          
+                                          <div className='w-100 d-flex align-items-center justify-content-center fs-5 bg-primary rounded px-2 py-1 text-white my-1 flex-column'>
+                                          
+                                          <label htmlFor='img-add-second'>Add an Image</label>
+                                        <input id='img-add-second' style={{display:"none"}} name='pic' accept='image/*' type='file' onChange={handleEditImageChange}/>
+                                        </div>
                                       </div>
                                       </div>
                                       <div className="modal-footer">

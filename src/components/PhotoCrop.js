@@ -22,7 +22,7 @@ const PhotoCrop = ({ imageSrc, onCropComplete,setImageSrc }) => {
         image={imageSrc}
         crop={crop}
         zoom={zoom}
-        aspect={4 / 3} // Set aspect ratio (e.g., 4:3 or 1:1 for square)
+        aspect={4 / 3} 
         onCropChange={setCrop}
         onZoomChange={setZoom}
         onCropComplete={handleCropComplete}
