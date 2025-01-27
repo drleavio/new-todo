@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Parse from '../service/parse'
+import { MoonLoader } from "react-spinners";
+import { toast } from 'react-toastify';
 
 const Login = () => {
     const navigate=useNavigate();
+    const [loading,setLoading]=useState(false);
     useEffect(()=>{
         const loggedIn=Parse.User.current();
         if(loggedIn){
@@ -24,13 +27,19 @@ const Login = () => {
     }
     const handleClick=async()=>{
         try {
-           
+           setLoading(true)
             const response=await Parse.User.logIn(data.username,data.password);
+            toast.success('SignIn successfully')
             navigate('/todo')
             console.log(response);
             
         } catch (error) {
-            throw new Error(error)
+            toast.error('Error doing signin')
+            return;
+            // throw new Error(error)
+            
+        }finally{
+            setLoading(false)
         }
     }
   return (
@@ -42,7 +51,7 @@ const Login = () => {
                     <input className='w-100 px-2 py-2 rounded' type='text' name='username' placeholder='user_name' onChange={handlechange}/>
                     <label className='w-100 fs-5 fw-normal'>Passowrd</label>
                     <input className='w-100 px-2 py-2 rounded' type='text' name='password' placeholder='**********' onChange={handlechange}/>
-                    <button className='w-100 px-2 py-2 rounded my-3 bg-primary btn text-white' onClick={handleClick}>Login</button>
+                    <button className='w-100 px-2 py-2 rounded my-3 bg-primary btn text-white d-flex align-items-center justify-content-center gap-2' onClick={handleClick}>{loading && <MoonLoader size={15} color="white"/>}Login</button>
                     <p>Don't have an account? please <Link to='/signup'>Signup</Link></p>
                 </div>
         </div>

@@ -8,6 +8,8 @@ import { styled } from '@mui/material/styles';
 import Parse from '../service/parse';
 import { useNavigate } from 'react-router-dom';
 import PhotoCrop from '../components/PhotoCrop';
+import { MoonLoader } from "react-spinners";
+import { toast } from 'react-toastify';
 
 
 
@@ -15,6 +17,7 @@ const Todo = () => {
   const navigate=useNavigate()
   const user=useRef(null);
   const name=useRef(null);
+  const [loading,setLoading]=useState(false);
   // const [show,setShow]=useState(false);
 
   const [data,setData]=useState([])
@@ -103,13 +106,14 @@ const Todo = () => {
       newuser.set('userid',user.current.id);
       newuser.set('image',croppedImage)
     try {
-      
+      setLoading(true)
       const response=await newuser.save();
       console.log('data-added',response);
+      toast.success('item added successfully')
       await fetchData();
       setAddItem({
-        heading:"",
-        content:"",
+        heading:null,
+        content:null,
         
       })
       setCroppedImage(null)
@@ -118,9 +122,18 @@ const Todo = () => {
     if(modal) modal.click();
     } catch (error) {
       console.log('error saving data',error);
+      setAddItem({
+        heading:null,
+        content:null,
+        
+      })
+      setCroppedImage(null)
+      toast.error(`${error}`)
       const modal=document.getElementById('addModal')
     if(modal) modal.click();
       
+    }finally{
+      setLoading(false)
     }
    
    
@@ -160,20 +173,24 @@ const Todo = () => {
     const query = new Parse.Query(Task);
     const task = await query.get(id);
     try {
+      setLoading(true)
       task.set('heading',editHeader);
       task.set('content',editContent);
       await task.save();
       setEditId(null);
       setEditHeader(null);
       setEditContent(null);
+      toast.success('item updated successfully')
       await fetchData()
       const modal=document.getElementById('editModal')
     if(modal) modal.click();
     } catch (error) {
-      console.log('error updating ');
-      
+      // console.log('error updating ');
+      toast.error('Error updating item')
       const modal=document.getElementById('editModal')
     if(modal) modal.click();
+    }finally{
+      setLoading(false)
     }
    
     
@@ -184,12 +201,17 @@ const Todo = () => {
   
   const logout=async()=>{
     try {
+      setLoading(true)
       await Parse.User.logOut();
       user.current=null
+      toast.success('loggedout successfully')
       navigate('/')
       console.log("User logged out!");
     } catch (error) {
+      toast.error('error doing logout')
       console.error("Error while logging out:", error.message);
+    }finally{
+      setLoading(false);
     }
   }
   
@@ -286,7 +308,7 @@ const Todo = () => {
           
           <div className='d-flex align-items-center justify-content-end width-max gap-2'>
             <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
-            {user &&<button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} onClick={()=>logout()}>Logout</button>}
+            {user &&<button className='px-3 py-2 rounded border-0 text-white width-max d-flex align-items-center justify-content-center gap-2' style={{backgroundColor:"black"}} onClick={()=>logout()}>{loading && <MoonLoader size={15} color="white"/>}Logout</button>}
           </div>
          <div className="modal fade " id="addModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div className="modal-dialog">
@@ -304,7 +326,7 @@ const Todo = () => {
           
            <div style={{height:"300px",width:"100%"}}></div>
           
-           <div style={{position:"absolute",top:"200px", height:"300px", width:"500px"}}>
+           <div style={{position:"absolute",top:"210px", height:"250px", width:"480px"}} className='rounded'>
            {
               addItem.pic && <PhotoCrop imageSrc={addItem.pic} setImageSrc={setAddItem} onCropComplete={handleCropComplete}/>
             }
@@ -326,7 +348,7 @@ const Todo = () => {
         </div>
       </div>
       <div className="modal-footer d-flex align-items-center justify-content-center flex-row gap-2">
-        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded" onClick={()=>addNewItem()}>Add</button>
+        <button type="button" className="btn btn-primary w-100 py-2 px-2 rounded d-flex align-items-center justify-content-center gap-2" onClick={()=>addNewItem()}>{loading && <MoonLoader size={15} color="white"/>}Add</button>
         <button type="button" className="btn btn-secondary w-100 py-2 px-2 rounded" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -569,6 +591,7 @@ const Todo = () => {
     </div>
   )
 }
+
 
 const IOSSwitch = styled((props) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
