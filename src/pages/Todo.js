@@ -68,35 +68,35 @@ const Todo = () => {
       [name]:value
     })
   }
-  function giveTime(date_format){
-    // const date_format=new Date().toLocaleString().split(',');
-    const date=date_format[0];
-    const time=date_format[1];
-    const times=time.split(':');
-    let greet;
-    if(times[0]>12) greet='PM';
-    if(times[0]<=12) greet='AM';
-    let hour=times[0]%12;
-    const month=date.split('/');
-    const month_name=month[1];
-    let mon;
-    switch(month_name){
-      case '01':mon='Jan'; break;
-      case '02':mon='Fab'; break;
-      case '03':mon='Mar'; break;
-      case '04':mon='Apr'; break;
-      case '05':mon='May'; break;
-      case '06':mon='Jun'; break;
-      case '07':mon='Jul'; break;
-      case '08':mon='Aug'; break;
-      case '09':mon='Sep'; break;
-      case '10':mon='Oct'; break;
-      case '11':mon='Nov'; break;
-      case '12':mon='Dec'; break;
-      default:mon='not'; break;
-    }
-    return mon + ' '+month[0]+', '+month[2]+' '+hour+':'+times[1]+' '+greet
-  }
+  // function giveTime(date_format){
+  //   // const date_format=new Date().toLocaleString().split(',');
+  //   const date=date_format[0];
+  //   const time=date_format[1];
+  //   const times=time.split(':');
+  //   let greet;
+  //   if(times[0]>12) greet='PM';
+  //   if(times[0]<=12) greet='AM';
+  //   let hour=times[0]%12;
+  //   const month=date.split('/');
+  //   const month_name=month[1];
+  //   let mon;
+  //   switch(month_name){
+  //     case '01':mon='Jan'; break;
+  //     case '02':mon='Fab'; break;
+  //     case '03':mon='Mar'; break;
+  //     case '04':mon='Apr'; break;
+  //     case '05':mon='May'; break;
+  //     case '06':mon='Jun'; break;
+  //     case '07':mon='Jul'; break;
+  //     case '08':mon='Aug'; break;
+  //     case '09':mon='Sep'; break;
+  //     case '10':mon='Oct'; break;
+  //     case '11':mon='Nov'; break;
+  //     case '12':mon='Dec'; break;
+  //     default:mon='not'; break;
+  //   }
+  //   return mon + ' '+month[0]+', '+month[2]+' '+hour+':'+times[1]+' '+greet
+  // }
   const addNewItem=async()=>{
     // const maxId = data.length > 0 ? Math.max(...data.map((item) => item.id)) : 0;
     const newdata = Parse.Object.extend("todoapp");
@@ -568,7 +568,7 @@ const Todo = () => {
           
                                           <div style={{position:"absolute",top:"210px", height:"250px", width:"480px"}} className='rounded'>
                                           {
-                                            (editImage) && <PhotoCrop imageSrc={editImage} setImageSrc={setEditImage} onCropComplete={handleEditCropComplete}/>
+                                            (editImage && !editCroppedImage) && <PhotoCrop imageSrc={editImage} setImageSrc={setEditImage} onCropComplete={handleEditCropComplete}/>
                                           }
                                             {editCroppedImage && (
                                             <img

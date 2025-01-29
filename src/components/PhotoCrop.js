@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Cropper from 'react-easy-crop';
-import { getCroppedImg } from '../utility/cropUtils'; // Helper function for cropping
+import { getCroppedImg } from '../utility/cropUtils'; 
 
 const PhotoCrop = ({ imageSrc, onCropComplete,setImageSrc }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });

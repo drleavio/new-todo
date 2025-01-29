@@ -36,7 +36,7 @@ export const getCroppedImg = async (imageSrc, crop) => {
             }
           },
           'image/jpeg',
-          1 // Quality: 1 for highest
+          1 
         );
       };
   
