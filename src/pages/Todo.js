@@ -7,7 +7,16 @@ import { Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Parse from '../service/parse';
 import { useNavigate } from 'react-router-dom';
-import PhotoCrop from '../components/PhotoCrop';
+import 'react-image-crop/dist/ReactCrop.css';
+// import {canvasPreview} from '../utility/canvasPreview'
+// import PhotoCrop from '../components/PhotoCrop';
+import ReactCrop, {
+  centerCrop,
+  makeAspectCrop,
+  Crop,
+  PixelCrop,
+  convertToPixelCrop,
+} from 'react-image-crop'
 
 
 
@@ -16,6 +25,13 @@ const Todo = () => {
   const user=useRef(null);
   const name=useRef(null);
   // const [show,setShow]=useState(false);
+  const [crop,setCrop]=useState()
+  const imgRef=useRef(null);
+  const [completedCrop, setCompletedCrop]=useState(null)
+  const [aspect, setAspect] = useState()
+  const [scale, setScale] = useState(1)
+  const [rotate, setRotate] = useState(0)
+  // const [croppedImage,setCroppedImage]=useState()
 
   const [data,setData]=useState([])
   const handleHide=async(id)=>{
@@ -65,35 +81,35 @@ const Todo = () => {
       [name]:value
     })
   }
-  function giveTime(date_format){
-    // const date_format=new Date().toLocaleString().split(',');
-    const date=date_format[0];
-    const time=date_format[1];
-    const times=time.split(':');
-    let greet;
-    if(times[0]>12) greet='PM';
-    if(times[0]<=12) greet='AM';
-    let hour=times[0]%12;
-    const month=date.split('/');
-    const month_name=month[1];
-    let mon;
-    switch(month_name){
-      case '01':mon='Jan'; break;
-      case '02':mon='Fab'; break;
-      case '03':mon='Mar'; break;
-      case '04':mon='Apr'; break;
-      case '05':mon='May'; break;
-      case '06':mon='Jun'; break;
-      case '07':mon='Jul'; break;
-      case '08':mon='Aug'; break;
-      case '09':mon='Sep'; break;
-      case '10':mon='Oct'; break;
-      case '11':mon='Nov'; break;
-      case '12':mon='Dec'; break;
-      default:mon='not'; break;
-    }
-    return mon + ' '+month[0]+', '+month[2]+' '+hour+':'+times[1]+' '+greet
-  }
+  // function giveTime(date_format){
+  //   // const date_format=new Date().toLocaleString().split(',');
+  //   const date=date_format[0];
+  //   const time=date_format[1];
+  //   const times=time.split(':');
+  //   let greet;
+  //   if(times[0]>12) greet='PM';
+  //   if(times[0]<=12) greet='AM';
+  //   let hour=times[0]%12;
+  //   const month=date.split('/');
+  //   const month_name=month[1];
+  //   let mon;
+  //   switch(month_name){
+  //     case '01':mon='Jan'; break;
+  //     case '02':mon='Fab'; break;
+  //     case '03':mon='Mar'; break;
+  //     case '04':mon='Apr'; break;
+  //     case '05':mon='May'; break;
+  //     case '06':mon='Jun'; break;
+  //     case '07':mon='Jul'; break;
+  //     case '08':mon='Aug'; break;
+  //     case '09':mon='Sep'; break;
+  //     case '10':mon='Oct'; break;
+  //     case '11':mon='Nov'; break;
+  //     case '12':mon='Dec'; break;
+  //     default:mon='not'; break;
+  //   }
+  //   return mon + ' '+month[0]+', '+month[2]+' '+hour+':'+times[1]+' '+greet
+  // }
   const addNewItem=async()=>{
     // const maxId = data.length > 0 ? Math.max(...data.map((item) => item.id)) : 0;
     const newdata = Parse.Object.extend("todoapp");
@@ -207,7 +223,7 @@ const Todo = () => {
     }
       try {
         query.equalTo('userid',user.current.id);
-        const response=await query.find();
+        const response=await query.find({ useMasterKey: true, allowDiskUse: true });
         setData(response)
       } catch (error) {
         console.log('error fetching the data',error);
@@ -258,6 +274,101 @@ const Todo = () => {
     })
     
   };
+
+  function centerAspectCrop(
+    mediaWidth,
+    mediaHeight,
+    aspect
+  ) {
+    return centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 90,
+        },
+        aspect,
+        mediaWidth,
+        mediaHeight,
+      ),
+      mediaWidth,
+      mediaHeight,
+    )
+  }
+
+  function onImageLoad(e) {
+    if (aspect) {
+      const { width, height } = e.currentTarget
+      setCrop(centerAspectCrop(width, height, aspect))
+    }
+  }
+  // const previewCanvasRef = useRef(null)
+  async function onDownloadCropClick() {
+    const image = imgRef.current;
+    if (!image || !completedCrop) {
+      throw new Error("Crop data does not exist");
+    }
+  
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+  
+    // Create an offscreen canvas with the correct size
+    const offscreen = new OffscreenCanvas(
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY
+    );
+    const ctx = offscreen.getContext("2d");
+  
+    if (!ctx) {
+      throw new Error("No 2D context");
+    }
+  
+    // Draw the cropped portion from the original image
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX, // Crop X position
+      completedCrop.y * scaleY, // Crop Y position
+      completedCrop.width * scaleX, // Crop width
+      completedCrop.height * scaleY, // Crop height
+      0,
+      0,
+      offscreen.width,
+      offscreen.height
+    );
+  
+    // Convert the canvas content to a Blob
+    const blob = await offscreen.convertToBlob({
+      type: "image/png",
+    });
+  
+    // Read Blob as Data URL
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    setAddItem({
+      pic:""
+    })
+    reader.onloadend = () => {
+      setCroppedImage(reader.result); // Set the Data URL in state
+      console.log("Cropped Image Data URL:", reader.result); // Debugging
+    };
+  }
+  
+  
+  useEffect(() => {
+    console.log("Updated Cropped Image:", croppedImage);
+  }, [croppedImage]);
+  
+    
+
+    // if (blobUrlRef.current) {
+    //   URL.revokeObjectURL(blobUrlRef.current)
+    // }
+    // blobUrlRef.current = URL.createObjectURL(blob)
+
+    // if (hiddenAnchorRef.current) {
+    //   hiddenAnchorRef.current.href = blobUrlRef.current
+    //   hiddenAnchorRef.current.click()
+    // }
+  
   
   return (
     <div className='div d-flex flex-column'>
@@ -302,19 +413,44 @@ const Todo = () => {
           <label className="w-100 d-flex align-items-center justify-content-start fs-4">Content</label>
           <input className="w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded" type="text" placeholder="Add some content" name="content" onChange={handlenewItem} />
           
-           <div style={{height:"300px",width:"100%"}}></div>
-          
-           <div style={{position:"absolute",top:"200px", height:"300px", width:"500px"}}>
+           {/* <div style={{height:"300px",width:"100%"}}></div> */}
+           <div>
            {
-              addItem.pic && <PhotoCrop imageSrc={addItem.pic} setImageSrc={setAddItem} onCropComplete={handleCropComplete}/>
+              (addItem.pic && !croppedImage) && 
+              <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={aspect}
+              //  minWidth={500}
+              minHeight={100}
+              // circularCrop
+            >
+              <img
+                ref={imgRef}
+                alt="Crop me"
+                src={addItem.pic}
+                style={{ transform: `scale(${scale}) rotate(${rotate}deg)`,height:"350px",width:"450px" }}
+                onLoad={onImageLoad}
+                className='d-flex align-items-center justify-content-center'
+              />
+            </ReactCrop>
             }
-             {croppedImage && (
+            {
+              (!!completedCrop && !croppedImage) &&
+            <button className='w-100 px-1 bg-primary rounded fs-4' onClick={onDownloadCropClick}>crop</button>
+            }
+            {
+              croppedImage && <img style={{display:"block",height:"350px",width:"450px"}} src={croppedImage} alt='crop'/>
+            }
+            
+             {/* {croppedImage && (
               <img
                 src={croppedImage}
                 alt="preview"
                 style={{ height: "300px", width: "100%" }}
               />
-            )}
+            )} */}
            </div>
             
             <div className='w-100 d-flex align-items-center justify-content-center fs-5 bg-primary rounded px-2 py-1 text-white my-1 flex-column'>
@@ -509,6 +645,7 @@ const Todo = () => {
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editHeader} type='text' placeholder='Title' name='heading' onChange={(e)=>setEditHeader(e.target.value)}/>
                                         <label className='w-100 d-flex align-items-center justify-content-start fs-4'>Content</label>
                                         <input className='w-100 d-flex align-items-center justify-content-start px-2 py-2 rounded' value={editContent} type='text' placeholder='Add some content' name='content' onChange={(e)=>setEditContent(e.target.value)}/>
+                                       
                                       </div>
                                       </div>
                                       <div className="modal-footer">
