@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import images from '../assets/images/jack-white-fsLwJuydkTY-unsplash.jpg';
 import edit from '../assets/images/edit-3-svgrepo-com.svg';
 import deletebtn from '../assets/images/delete-svgrepo-com.svg';
@@ -15,8 +15,9 @@ import { toast } from 'react-toastify';
 
 const Todo = () => {
   const navigate=useNavigate()
-  const user=useRef(null);
-  const name=useRef(null);
+  // const user=useRef(null);
+  // const name=useRef(null);
+  const [userSession,setUserSession]=useState(null);
   const [loading,setLoading]=useState(false);
   // const [show,setShow]=useState(false);
 
@@ -103,7 +104,7 @@ const Todo = () => {
     const newuser = new newdata();
     newuser.set('heading',addItem.heading);
       newuser.set('content',addItem.content);
-      newuser.set('userid',user.current.id);
+      newuser.set('userid',userSession.id);
       newuser.set('image',croppedImage)
     try {
       setLoading(true)
@@ -207,7 +208,8 @@ const Todo = () => {
     try {
       setLoading(true)
       await Parse.User.logOut();
-      user.current=null
+      // user.current=null
+      setUserSession(null);
       toast.success('loggedout successfully')
       navigate('/')
       console.log("User logged out!");
@@ -232,7 +234,7 @@ const Todo = () => {
       query.ascending('updatedAt')
     }
       try {
-        query.equalTo('userid',user.current.id);
+        query.equalTo('userid',userSession.id);
         const response=await query.find();
         setData(response)
       } catch (error) {
@@ -246,10 +248,14 @@ const Todo = () => {
     
     if(!loggedIn){
         navigate('/')
+        return
     }
-    user.current=loggedIn;
-    name.current=loggedIn.attributes.username
-    console.log('user-session',user.current.id,name.current);
+    setUserSession(loggedIn)
+    console.log(userSession);
+    
+    // user.current=loggedIn;
+    // name.current=loggedIn.get('username');
+    // console.log('user-session',user.current.id,name.current);
     fetchData();
 },[btn])
 
@@ -338,7 +344,7 @@ const Todo = () => {
           
           <div className='d-flex align-items-center justify-content-end width-max gap-2'>
             <button className='px-3 py-2 rounded border-0 text-white width-max' style={{backgroundColor:"black"}} data-bs-toggle="modal" data-bs-target="#addModal">New Todo</button>
-            {user &&<button className='px-3 py-2 rounded border-0 text-white width-max d-flex align-items-center justify-content-center gap-2' style={{backgroundColor:"black"}} onClick={()=>logout()}>{loading && <MoonLoader size={15} color="white"/>}Logout</button>}
+            {userSession &&<button className='px-3 py-2 rounded border-0 text-white width-max d-flex align-items-center justify-content-center gap-2' style={{backgroundColor:"black"}} onClick={()=>logout()}>{loading && <MoonLoader size={15} color="white"/>}Logout</button>}
           </div>
          <div className="modal fade " id="addModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div className="modal-dialog">
@@ -387,7 +393,7 @@ const Todo = () => {
 
       </header>
       <div className='d-flex gap-2 fs-4 fw-normal my-2'>
-            Welcome <div className='fw-bolder'>{name.current}</div>
+            Welcome <div className='fw-bolder'>user</div>
           </div>
       <section className='w-100 mt-5 d-flex align-items-start justify-content-center'>
           <div className='width-75 d-flex align-items-center justify-content-center flex-column gap-4'>
